@@ -43,6 +43,7 @@ class NetCDFLoader():
 def get(url,filename):
     "download from `url` and save as `filename` unless the file is already present"
     if not os.path.isfile(filename):
+        print(f"getting {url}")
         urllib.request.urlretrieve(url, filename)
 
 
@@ -55,7 +56,7 @@ if os.environ.get("CI","false") == "true":
 
     train_indices = range(0,20)
     test_indices = range(20,31)
-    nepochs = 10
+    nepochs = 3
     device = torch.device('cpu')
 else:
     filename = "cmems_obs-sst_glo_phy_my_l3s_P1D-m_multi-vars_9.15W-41.95E_30.05N-55.55N_1982-01-01-2022-12-31.nc"
