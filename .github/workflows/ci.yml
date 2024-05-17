@@ -19,6 +19,9 @@ jobs:
         # still using requirements.txt files as
         # https://github.com/pypa/pip/issues/11440
         pip3 install -r requirements.txt
-    - name: Run Tests
+    - name: Run Tests with code coverage report
       run: |
-        python train.py
+        pip install coverage
+        coverage run -m pytest --capture=no
+    - name: Upload Coverage to Codecov
+      uses: codecov/codecov-action@v2

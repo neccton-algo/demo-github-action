@@ -23,8 +23,8 @@ class NetCDFLoader():
 
         self.x = x - self.meanx
         self.npast = npast
-        print("variable ",varname)
-        print("shape: ",x.shape)
+        print("variable:      ",varname)
+        print("shape:         ",x.shape)
         self.device = device
 
     def __len__(self):
@@ -40,81 +40,86 @@ class NetCDFLoader():
 
         return (xin,xtrue)
 
-def get(url,filename):
-    "download from `url` and save as `filename` unless the file is already present"
-    if not os.path.isfile(filename):
-        print(f"getting {url}")
-        urllib.request.urlretrieve(url, filename)
-
-
-os.environ["CI"] = "true"
-
-if os.environ.get("CI","false") == "true":
-    filename = "cmems_obs-sst_glo_phy_my_l3s_P1D-m_multi-vars_9.15W-41.95E_30.05N-55.55N_2022-01-01-2022-01-31.nc"
-
-    get("https://dox.ulg.ac.be/index.php/s/wKuyuGvX3bujc40/download",filename)
-
-    train_indices = range(0,20)
-    test_indices = range(20,31)
-    nepochs = 3
-    device = torch.device('cpu')
-else:
-    filename = "cmems_obs-sst_glo_phy_my_l3s_P1D-m_multi-vars_9.15W-41.95E_30.05N-55.55N_1982-01-01-2022-12-31.nc"
-    train_indices = range(0,14975-365)
-    test_indices = range((14975-365),14975)
-    nepochs = 50
-    device = torch.device('cuda')
-
-
 def loss_function(xout,xtrue):
     m = torch.isfinite(xtrue)
     return torch.mean((xout[m] - xtrue[m])**2)
 
 
-varname = "adjusted_sea_surface_temperature"
-npast = 7
-learning_rate = 0.001
-
-dataset_train = NetCDFLoader(filename,varname,device,npast,train_indices)
-dataset_test = NetCDFLoader(filename,varname,device,npast,test_indices, meanx = dataset_train.meanx)
-
-training_loader = torch.utils.data.DataLoader(dataset_train, batch_size=4, shuffle=True)
-test_loader = torch.utils.data.DataLoader(dataset_test, batch_size=1, shuffle=False)
-
-# Instantiate the model
-model = UNet(2*npast,1)
-model = model.to(device=device)
-
-# Test data loader
-xin,xtrue = next(iter(training_loader))
-
-# Test model
-xout = model(xin)
-print("shape of input x: ",xin.shape)
-print("shape of true x:  ",xtrue.shape)
-print("shape of output:  ",xout.shape)
-
-optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate)
-
-start = time.time()
-
-for epoch in range(nepochs):
-    running_loss = 0.
-
-    for (i,(xin,xtrue)) in enumerate(training_loader):
-        optimizer.zero_grad()
-        xout = model(xin)
-        loss = loss_function(xout,xtrue)
-        loss.backward()
-
-        # Adjust learning weights
-        optimizer.step()
-        running_loss += loss.item()
-
-        #if i % 10 == 0:
-        #    print("    loss ",i,loss.item())
+def train(filename,varname,train_indices,nepochs,
+          npast = 7,
+          device = torch.device('cpu'),
+          learning_rate = 0.001):
 
 
-    print("loss ",epoch,running_loss / len(training_loader))
+    dataset_train = NetCDFLoader(filename,varname,device,npast,train_indices)
+#    dataset_test = NetCDFLoader(filename,varname,device,npast,test_indices, meanx = dataset_train.meanx)
 
-print("training time (seconds)",time.time() - start)
+    training_loader = torch.utils.data.DataLoader(dataset_train, batch_size=4, shuffle=True)
+#    test_loader = torch.utils.data.DataLoader(dataset_test, batch_size=1, shuffle=False)
+
+    # Instantiate the model
+    model = UNet(2*npast,1)
+    model = model.to(device=device)
+
+    # Test data loader
+    xin,xtrue = next(iter(training_loader))
+
+    # Test model
+    xout = model(xin)
+    print("shape of input x: ",xin.shape)
+    print("shape of true x:  ",xtrue.shape)
+    print("shape of output:  ",xout.shape)
+
+    optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate)
+
+    start = time.time()
+    losses = []
+
+    for epoch in range(nepochs):
+        running_loss = 0.
+
+        for (i,(xin,xtrue)) in enumerate(training_loader):
+            optimizer.zero_grad()
+            xout = model(xin)
+            loss = loss_function(xout,xtrue)
+            loss.backward()
+
+            # Adjust learning weights
+            optimizer.step()
+            running_loss += loss.item()
+
+            #if i % 10 == 0:
+            #    print("    loss ",i,loss.item())
+
+        losses.append(running_loss / len(training_loader))
+        print("loss ",epoch,losses[-1])
+
+    print("training time (seconds)",time.time() - start)
+    return (model,losses)
+
+if __name__ == "__main__":
+    os.environ["CI"] = "true"
+
+    if os.environ.get("CI","false") == "true":
+        filename = "cmems_obs-sst_glo_phy_my_l3s_P1D-m_multi-vars_9.15W-41.95E_30.05N-55.55N_2022-01-01-2022-01-31.nc"
+
+        get("https://dox.ulg.ac.be/index.php/s/wKuyuGvX3bujc40/download",filename)
+
+        train_indices = range(0,20)
+        test_indices = range(20,31)
+        nepochs = 3
+        device = torch.device('cpu')
+    else:
+        filename = "cmems_obs-sst_glo_phy_my_l3s_P1D-m_multi-vars_9.15W-41.95E_30.05N-55.55N_1982-01-01-2022-12-31.nc"
+        train_indices = range(0,14975-365)
+        test_indices = range((14975-365),14975)
+        nepochs = 50
+        device = torch.device('cuda')
+
+    varname = "adjusted_sea_surface_temperature"
+    npast = 7
+
+    train(filename,varname,train_indices,nepochs,
+          npast = 7,
+          device = torch.device('cpu'),
+          learning_rate = 0.001)
