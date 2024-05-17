@@ -8,22 +8,22 @@ import xarray as xr
 import numpy as np
 import os
 
-def conv2d2(inc,outc):
+def conv2d2(in_channels,out_channels):
     return nn.Sequential(
-        nn.Conv2d(inc,outc,kernel_size=3,padding=1),
-        nn.BatchNorm2d(outc),
+        nn.Conv2d(in_channels,out_channels,kernel_size=3,padding=1),
+        nn.BatchNorm2d(out_channels),
         nn.ReLU(),
-        nn.Conv2d(outc,outc,kernel_size=3,padding=1),
-        nn.BatchNorm2d(outc),
+        nn.Conv2d(out_channels,out_channels,kernel_size=3,padding=1),
+        nn.BatchNorm2d(out_channels),
         nn.ReLU(),
     )
 
 
-def upsampling(inc,outc):
+def upsampling(in_channels,out_channels):
     return nn.Sequential(
         nn.Upsample(scale_factor = 2),
-        nn.Conv2d(inc,outc,kernel_size=3,padding=1),
-        nn.BatchNorm2d(outc),
+        nn.Conv2d(in_channels,out_channels,kernel_size=3,padding=1),
+        nn.BatchNorm2d(out_channels),
         nn.ReLU(),
     )
 
