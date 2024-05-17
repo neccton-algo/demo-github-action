@@ -9,7 +9,6 @@ import numpy as np
 import os
 from model import UNet
 import time
-import urllib
 
 class NetCDFLoader():
     def __init__(self,filename,varname,device,npast,indices,meanx = None):

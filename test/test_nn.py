@@ -6,6 +6,7 @@ sys.path.append("/home/abarth/src/demo-github-action")
 
 import model
 import train
+import urllib
 
 def get(url,filename):
     "download from `url` and save as `filename` unless the file is already present"
