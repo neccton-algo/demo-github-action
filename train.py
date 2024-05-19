@@ -47,13 +47,15 @@ def loss_function(xout,xtrue):
 def train(filename,varname,train_indices,nepochs,
           npast = 7,
           device = torch.device('cpu'),
+          batchsize = 4,
           learning_rate = 0.001):
 
 
     dataset_train = NetCDFLoader(filename,varname,device,npast,train_indices)
 #    dataset_test = NetCDFLoader(filename,varname,device,npast,test_indices, meanx = dataset_train.meanx)
 
-    training_loader = torch.utils.data.DataLoader(dataset_train, batch_size=4, shuffle=True)
+    training_loader = torch.utils.data.DataLoader(
+        dataset_train, batch_size=batchsize, shuffle=True)
 #    test_loader = torch.utils.data.DataLoader(dataset_test, batch_size=1, shuffle=False)
 
     # Instantiate the model
