@@ -24,6 +24,7 @@ class NetCDFLoader():
         self.npast = npast
         print("variable:      ",varname)
         print("shape:         ",x.shape)
+        print("mean:          ",self.meanx)
         self.device = device
 
     def __len__(self):
