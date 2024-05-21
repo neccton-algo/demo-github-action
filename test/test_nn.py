@@ -1,9 +1,7 @@
 import torch
 import sys
 import os
-#sys.path.append(os.path.join(os.path.dirname(os.path.realpath(__file__)),".."))
-sys.path.append("/home/abarth/src/demo-github-action")
-
+sys.path.append(os.path.join(os.path.dirname(os.path.realpath(__file__)),".."))
 import model
 import train
 import urllib
@@ -26,19 +24,21 @@ def test_nn():
     varname = "adjusted_sea_surface_temperature"
     npast = 7
 
-    dataset_train = NetCDFLoader(filename,varname,device,npast,train_indices)
-    training_loader = torch.utils.data.DataLoader(
-        dataset_train, batch_size=batchsize, shuffle=True)
+    dataset_train = train.NetCDFLoader(filename,varname,device,npast,train_indices)
 
     # Instantiate the model
-    model = UNet(2*npast,1)
+    unet_model = model.UNet(2*npast,1)
 
-    model,losses = train.train(model,dataset_train,nepochs,
-                  npast = 7,
-                  device = device,
-                  learning_rate = 0.001)
+    unet_model,losses = train.train(
+        unet_model,dataset_train,nepochs,
+        npast = 7,
+        batchsize = 4,
+        device = device,
+        learning_rate = 0.001)
 
     assert losses[-1] < losses[0]
 
 # cpu 32 sec
 # gpu 1 sec
+
+#test_nn()

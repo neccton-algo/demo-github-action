@@ -52,6 +52,8 @@ def train(model,dataset_train,nepochs,
           learning_rate = 0.001):
 
 
+    training_loader = torch.utils.data.DataLoader(
+        dataset_train, batch_size=batchsize, shuffle=True)
     model = model.to(device=device)
 
     # Test data loader
