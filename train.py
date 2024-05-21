@@ -45,22 +45,13 @@ def loss_function(xout,xtrue):
     return torch.mean((xout[m] - xtrue[m])**2)
 
 
-def train(filename,varname,train_indices,nepochs,
+def train(model,dataset_train,nepochs,
           npast = 7,
           device = torch.device('cpu'),
           batchsize = 4,
           learning_rate = 0.001):
 
 
-    dataset_train = NetCDFLoader(filename,varname,device,npast,train_indices)
-#    dataset_test = NetCDFLoader(filename,varname,device,npast,test_indices, meanx = dataset_train.meanx)
-
-    training_loader = torch.utils.data.DataLoader(
-        dataset_train, batch_size=batchsize, shuffle=True)
-#    test_loader = torch.utils.data.DataLoader(dataset_test, batch_size=1, shuffle=False)
-
-    # Instantiate the model
-    model = UNet(2*npast,1)
     model = model.to(device=device)
 
     # Test data loader
@@ -123,5 +114,5 @@ if __name__ == "__main__":
 
     train(filename,varname,train_indices,nepochs,
           npast = 7,
-          device = torch.device('cpu'),
+          device = device,
           learning_rate = 0.001)

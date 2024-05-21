@@ -21,13 +21,24 @@ def test_nn():
 
     train_indices = range(0,20)
     nepochs = 3
+    #device = torch.device('cuda')
     device = torch.device('cpu')
     varname = "adjusted_sea_surface_temperature"
     npast = 7
 
-    model,losses = train.train(filename,varname,train_indices,nepochs,
+    dataset_train = NetCDFLoader(filename,varname,device,npast,train_indices)
+    training_loader = torch.utils.data.DataLoader(
+        dataset_train, batch_size=batchsize, shuffle=True)
+
+    # Instantiate the model
+    model = UNet(2*npast,1)
+
+    model,losses = train.train(model,dataset_train,nepochs,
                   npast = 7,
-                  device = torch.device('cpu'),
+                  device = device,
                   learning_rate = 0.001)
 
     assert losses[-1] < losses[0]
+
+# cpu 32 sec
+# gpu 1 sec
