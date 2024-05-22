@@ -40,12 +40,23 @@ class NetCDFLoader():
 
         return (xin,xtrue)
 
-def loss_function(xout,xtrue):
+def loss_function_MSE(xout,xtrue):
     m = torch.isfinite(xtrue)
     return torch.mean((xout[m] - xtrue[m])**2)
 
+def loss_function_DINCAE(xout,xtrue):
+    m_rec = xout[:,0:1,:,:]
+    log_σ2_rec = xout[:,1:2,:,:]
+    σ2_rec = torch.exp(log_σ2_rec)
+
+    m = torch.isfinite(xtrue)
+    difference2 = (m_rec[m] - xtrue[m])**2
+    cost = torch.mean(difference2/σ2_rec[m] + log_σ2_rec[m])
+    return cost
+
 
 def train(model,dataset_train,nepochs,
+          train_loss_function = loss_function_MSE,
           npast = 7,
           device = torch.device('cpu'),
           batchsize = 4,
@@ -76,7 +87,7 @@ def train(model,dataset_train,nepochs,
         for (i,(xin,xtrue)) in enumerate(training_loader):
             optimizer.zero_grad()
             xout = model(xin)
-            loss = loss_function(xout,xtrue)
+            loss = train_loss_function(xout,xtrue)
             loss.backward()
 
             # Adjust learning weights
