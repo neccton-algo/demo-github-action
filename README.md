@@ -3,9 +3,22 @@
 # demo-github-action
 Predict satellite data based on L3 data (including missing data) with a UNet
 
-![image](https://github.com/neccton-algo/demo-github-action/assets/9881475/cda82b0f-337c-43e5-bbf8-b34dea9924e0)
+![image](https://github.com/neccton-algo/demo-github-action/assets/9881475/b64195b2-1c3d-45d9-a8cb-f8eb3dc0db55)
 
 
+Input:
+* Sea surface temperature (SST, Level 3, i.e. with missing data) from the 7 past days
+
+Output:
+* SST prediction of the next with without clouds
+* Expected standard deviation error of the SST prediction
+
+Model:
+* Standard UNet (https://doi.org/10.1007/978-3-319-24574-4_28)
+
+Loss function:
+* Mean squared error or
+* DINCAE loss function, likehood of the observation for a Gaussian pdf with a given mean and standard deviation (see https://doi.org/10.5194/gmd-13-1609-2020 for details)
 
 
 # Github action
