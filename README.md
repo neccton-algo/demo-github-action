@@ -5,6 +5,7 @@ Predict satellite data based on L3 data (including missing data) with a UNet
 
 ![image](https://github.com/neccton-algo/demo-github-action/assets/9881475/b64195b2-1c3d-45d9-a8cb-f8eb3dc0db55)
 
+*Figure: SST in degree Celsius for the first (independent) test data.*
 
 Input:
 * Sea surface temperature (SST, Level 3, i.e. with missing data) from the 7 past days
