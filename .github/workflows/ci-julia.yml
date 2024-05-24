@@ -36,6 +36,8 @@ jobs:
         run: |
            using Pkg
            Pkg.instantiate()
+           @show pwd()
+           @show readdir()
            include("julia/test_nn.jl")
         shell: julia --color=yes --project=julia --code-coverage=user {0}
       - uses: julia-actions/julia-processcoverage@v1
