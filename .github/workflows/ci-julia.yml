@@ -39,7 +39,7 @@ jobs:
            @show pwd()
            @show readdir()
            @show readdir("julia")
-           include("/home/runner/work/demo-github-action/demo-github-action/test_nn.jl")
+           include("/home/runner/work/demo-github-action/demo-github-action/julia/test_nn.jl")
         shell: julia --color=yes --project=julia --code-coverage=user {0}
       - uses: julia-actions/julia-processcoverage@v1
       - name: Upload coverage reports to Codecov
