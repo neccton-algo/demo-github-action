@@ -24,7 +24,7 @@ learning_rate = 5f-4
 dataset_train = NetCDFLoader3(filename,varname,npast,train_indices)
 
 # Instantiate the model
-model = UNet2(2*npast,2);
+model = UNet(2*npast,2);
 
 train_loss_function = loss_function_DINCAE
 #train_loss_function = loss_function_MSE

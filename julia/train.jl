@@ -3,11 +3,7 @@
 
 using NCDatasets
 using Flux
-#using NaNStatistics
 import Base: length, getindex, size
-#using DataLoaders
-#import LearnBase
-#import LearnBase: getobs, nobs
 using Statistics
 using Random
 import DINCAE
@@ -63,73 +59,15 @@ function getobs!(nl::NetCDFLoader3,(xin,xtrue),ind::Int)
             xtrue[i,j,1] = nl.x[i,j,ind+nl.npast]
         end
     end
-    # xi = @view nl.x[:,:,i:(i+nl.npast-1)]
-    # mask = isnan.(xi)
-    # xi[mask] .= 0
-
-    # xin = cat(xi,mask,dims=3) #|> nl.device
-    # xtrue = @view nl.x[:,:,(i:i) .+ nl.npast] #|> nl.device
     return (xin,xtrue)
 end
 
-#Base.size(nl::NetCDFLoader3) = (size(nl.x)[end] - nl.npast,)
-
-#Base.length(nl::NetCDFLoader3) = size(nl.x)[end] - nl.npast
-
-#LearnBase.nobs(nl::NetCDFLoader3) = size(nl.x)[end] - nl.npast
-
 nobs(nl::NetCDFLoader3) = size(nl.x)[end] - nl.npast
-
-#=
-filename = "cmems_obs-sst_glo_phy_my_l3s_P1D-m_multi-vars_9.15W-41.95E_30.05N-55.55N_2022-01-01-2022-01-31.nc"
-train_indices = 1:20
-test_indices = 21:31
-nepochs = 3
-device = cpu
-varname = "adjusted_sea_surface_temperature"
-npast = 7
-nl = NetCDFLoader3(filename,varname,device,npast,train_indices);
-i = 1
-buffer = getobs(nl,1)
-@btime getobs!($nl,$buffer,1)
-
-batchsize = 4
-dl = DINCAE.DataBatches(Array{Float32,4},nl,batchsize; shuffle=true)
-@time first(dl)
-=#
-
-# function LearnBase.getobs(nl::NetCDFLoader3,i0::Int)
-#     i = nl.perm[i0]
-#     xi = @view nl.x[:,:,i:(i+nl.npast-1)]
-#     mask = isnan.(xi)
-#     xi[mask] .= 0
-
-#     xin = cat(xi,mask,dims=3) #|> nl.device
-#     xtrue = @view nl.x[:,:,(i:i) .+ nl.npast] #|> nl.device
-
-#     return (xin,xtrue)
-# end
-
-# function LearnBase.getobs!((xin,xtrue),nl::NetCDFLoader3,i)
-#     @show "here"
-#     xi = @view nl.x[:,:,i:(i+nl.npast-1)]
-#     mask = isnan.(xi)
-#     xi[mask] .= 0
-
-#     xin .= cat(xi,mask,dims=3) #|> nl.device
-#     xtrue .= @view nl.x[:,:,(i:i) .+ nl.npast] #|> nl.device
-
-#     return (xin,xtrue)
-# end
-
-#typeof.(getobs(nl,1))
-#size.(getobs(nl,1))
 
 function loss_function_MSE(xout,xtrue)
     m = isfinite.(xtrue)
     return mean((xout[m] - xtrue[m]).^2)
 end
-
 
 function loss_function_DINCAE(xout,xtrue; eps = 1f-5)
     m_rec = @view xout[:,:,1:1,:]
@@ -141,7 +79,6 @@ function loss_function_DINCAE(xout,xtrue; eps = 1f-5)
     cost = mean(difference2./σ2_rec[m] + log_σ2_rec[m])
     return cost
 end
-
 
 function train(model,dataset_train,nepochs;
                train_loss_function = loss_function_MSE,
@@ -180,10 +117,8 @@ function train(model,dataset_train,nepochs;
 
             for (i,(xin_cpu,xtrue_cpu)) in enumerate(DINCAE.PrefetchDataIter(training_loader))
             #for (i,(xin_cpu,xtrue_cpu)) in enumerate(training_loader)
-            #for i = 1:length(training_loader)
                 #(i,(xin,xtrue)) = first(enumerate(training_loader))
-                #@show size(xin),size(xtrue)
-                #@show xin_cpu[30,50,1,1]
+
                 (xin,xtrue) = device.((xin_cpu,xtrue_cpu))
 
                 loss, grads = Flux.withgradient(model) do m
@@ -191,11 +126,11 @@ function train(model,dataset_train,nepochs;
                     train_loss_function(xout,xtrue)
                 end
 
-                #@show loss
                 if !isfinite(loss)
                     @warn("stopping optimization loss: $loss")
                     break
                 end
+
                 # Adjust learning weights
                 Flux.update!(opt_state, model, grads[1])
                 running_loss += loss
@@ -212,28 +147,3 @@ function train(model,dataset_train,nepochs;
     end
     return (model,losses)
 end
-
-#=
-filename = "cmems_obs-sst_glo_phy_my_l3s_P1D-m_multi-vars_9.15W-41.95E_30.05N-55.55N_2022-01-01-2022-01-31.nc"
-
-
-train_indices = 1:20
-test_indices = 21:31
-nepochs = 3
-device = cpu
-    varname = "adjusted_sea_surface_temperature"
-    npast = 7
-
-else:
-        filename = "cmems_obs-sst_glo_phy_my_l3s_P1D-m_multi-vars_9.15W-41.95E_30.05N-55.55N_1982-01-01-2022-12-31.nc"
-        train_indices = range(0,14975-365)
-        test_indices = range((14975-365),14975)
-        nepochs = 50
-        device = gpu
-
-
-    train(filename,varname,train_indices,nepochs,
-          npast = 7,
-          device = torch.device('cpu'),
-          learning_rate = 0.001)
-=#

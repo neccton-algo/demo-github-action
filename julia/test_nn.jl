@@ -1,12 +1,10 @@
-using CUDA
 using Test
 using Downloads: download
 
 include("train.jl")
 
 function get(url,filename)
-
-    if !isfile(filename):
+    if !isfile(filename)
         println("getting $url")
         download(url, filename)
     end
@@ -20,7 +18,6 @@ get("https://dox.ulg.ac.be/index.php/s/wKuyuGvX3bujc40/download",filename)
 train_indices = 1:20
 nepochs = 3
 device = cpu
-#device = gpu
 varname = "adjusted_sea_surface_temperature"
 npast = 7
 
@@ -28,7 +25,21 @@ npast = 7
 dataset_train = NetCDFLoader3(filename,varname,npast,train_indices)
 
 # Instantiate the model
-model = UNet2(2*npast,1)
+model = UNet(2*npast,1)
+
+
+#=
+in_channels = 14
+out_channels = 2
+
+
+xin = zeros(Float32,256,256,in_channels,3);
+model = UNet(in_channels,out_channels)
+xout = model(xin)
+size(xout) == (256,256,out_channels,3)
+
+sum(length.(Flux.params(model))) == 34533442
+=#
 
 #train_loss_function = loss_function_DINCAE
 train_loss_function = loss_function_MSE
@@ -39,4 +50,4 @@ model,losses = train(model,dataset_train,nepochs;
                      batchsize = 4,
                      learning_rate = 0.001)
 
-@test losses[end] < losses[0]
+@test losses[end] < losses[1]
