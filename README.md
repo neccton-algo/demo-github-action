@@ -1,4 +1,5 @@
 [![Build Status](https://github.com/neccton-algo/demo-github-action/workflows/CI/badge.svg)](https://github.com/neccton-algo/demo-github-action/actions)
+[![codecov.io](http://codecov.io/github/neccton-algo/demo-github-action/coverage.svg?branch=master)](http://app.codecov.io/github/neccton-algo/demo-github-action?branch=main)
 
 # demo-github-action
 Predict satellite data based on L3 data (including missing data) with a UNet
