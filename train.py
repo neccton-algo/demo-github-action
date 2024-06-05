@@ -102,30 +102,3 @@ def train(model,dataset_train,nepochs,
 
     print("training time (seconds)",time.time() - start)
     return (model,losses)
-
-if __name__ == "__main__":
-    os.environ["CI"] = "true"
-
-    if os.environ.get("CI","false") == "true":
-        filename = "cmems_obs-sst_glo_phy_my_l3s_P1D-m_multi-vars_9.15W-41.95E_30.05N-55.55N_2022-01-01-2022-01-31.nc"
-
-        get("https://dox.ulg.ac.be/index.php/s/wKuyuGvX3bujc40/download",filename)
-
-        train_indices = range(0,20)
-        test_indices = range(20,31)
-        nepochs = 3
-        device = torch.device('cpu')
-    else:
-        filename = "cmems_obs-sst_glo_phy_my_l3s_P1D-m_multi-vars_9.15W-41.95E_30.05N-55.55N_1982-01-01-2022-12-31.nc"
-        train_indices = range(0,14975-365)
-        test_indices = range((14975-365),14975)
-        nepochs = 50
-        device = torch.device('cuda')
-
-    varname = "adjusted_sea_surface_temperature"
-    npast = 7
-
-    train(filename,varname,train_indices,nepochs,
-          npast = 7,
-          device = device,
-          learning_rate = 0.001)
