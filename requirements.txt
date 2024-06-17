@@ -1,5 +1,5 @@
-numpy>=1.26
-torch>=2.1
-xarray>=2024.3
-netCDF4
-pytest
+numpy~=1.26.4
+torch~=2.1.0
+xarray==2024.3
+netCDF4~=1.6.5
+pytest~=8.2.0
